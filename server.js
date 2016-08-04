@@ -3,7 +3,7 @@ var app = express();
 app.enable('trust proxy');
 
 // export MLAB_LITTLE_URL_URI="mongodb://user:pass@ds042729.mlab.com:42729/little-url"
-// heroku config:set MLAB_LITTLEURL_URI=mongodb://user:pass@ds042729.mlab.com:42729/little-url
+// heroku config:set MLAB_LITTLE_URL_URI=mongodb://user:pass@ds042729.mlab.com:42729/little-url
 var client = require('mongodb').MongoClient;
 var dburl = process.env.MLAB_LITTLE_URL_URI;
 var db;
@@ -32,9 +32,8 @@ app.get(newurlregexp, function(req, res, next) {
   obj.original_url = newurl;
   collection.findOne({ newurl: newurl }).then(function(item) {
     if (!(item)) {
-      collection.count({}).then(function(cnt) {
-        id = cnt+1;
-        console.log("count",cnt);
+      collection.count({}).then(function(count) {
+        id = count+1;
         collection.insertOne({ newurl: newurl, id: id }).then(function(db){
           obj.short_url = "http://"+req.get('Host')+"/"+id;
           res.send(JSON.stringify(obj));
@@ -56,7 +55,6 @@ app.get(/\/new\/[\s\S]*/, function(req, res, next) {
 
 app.get('/:id', function(req, res, next) {
   collection.findOne({id: +req.params.id}).then(function(item) {
-    console.log("item",item);
     if (item) {
       res.redirect(item.newurl);
     } else {
